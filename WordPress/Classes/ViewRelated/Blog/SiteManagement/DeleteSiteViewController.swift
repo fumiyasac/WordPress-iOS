@@ -179,8 +179,22 @@ public class DeleteSiteViewController : UITableViewController
     private func exportContent() {
         tableView.deselectSelectedRowWithAnimation(true)
         
-        let exportTitle = NSLocalizedString("Export Content", comment: "Title of alert when Export Content selected")
-        let exportMessage = NSLocalizedString("Currently exporting is only available through the web interface. Please go to WordPress.com in your browser to export content.", comment: "Message of alert when Export Content selected")
+        let service = SiteManagementService(managedObjectContext: ContextManager.sharedInstance().mainContext)
+        service.exportContentForBlog(blog,
+            success: { [weak self] in
+                self?.explainExport()
+            },
+            failure: { [weak self] error in
+                DDLogSwift.logError("Error exporting content for site \(self?.primaryDomain): \(error.localizedDescription)")
+                
+                let errorTitle = NSLocalizedString("Export Content Error", comment: "Title of alert when starting export content fails")
+                self?.showError(error, title: errorTitle)
+            })
+    }
+    
+    private func explainExport() {
+        let exportTitle = NSLocalizedString("Exporting Content", comment: "Title of alert when Export Content atarted")
+        let exportMessage = NSLocalizedString("An email will be sent when your content is ready to download.", comment: "Message of alert when Export Content started")
         let alertController = UIAlertController(title: exportTitle, message: exportMessage, preferredStyle: .Alert)
         
         let okTitle = NSLocalizedString("OK", comment: "Alert dismissal title")
@@ -240,13 +254,13 @@ public class DeleteSiteViewController : UITableViewController
                 DDLogSwift.logError("Error deleting site \(self?.primaryDomain): \(error.localizedDescription)")
                 SVProgressHUD.dismiss()
                 
-                self?.showError(error)
+                let errorTitle = NSLocalizedString("Delete Site Error", comment: "Title of alert when site deletion fails")
+                self?.showError(error, title: errorTitle)
             })
     }
     
-    private func showError(error: NSError) {
-        let errorTitle = NSLocalizedString("Delete Site Error", comment: "Title of alert when site deletion fails")
-        let alertController = UIAlertController(title: errorTitle, message: error.localizedDescription, preferredStyle: .Alert)
+    private func showError(error: NSError, title: String) {
+        let alertController = UIAlertController(title: title, message: error.localizedDescription, preferredStyle: .Alert)
         
         let okTitle = NSLocalizedString("OK", comment: "Alert dismissal title")
         alertController.addDefaultActionWithTitle(okTitle, handler: nil)
