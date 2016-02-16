@@ -38,7 +38,38 @@ public class SiteManagementServiceRemote : ServiceRemoteREST
                 failure?(error)
             })
     }
-    
+
+    /// Triggers content export of the specified WordPress.com site.
+    ///
+    /// - Note: An email will be sent with download link when export completes.
+    ///
+    /// - Parameters:
+    ///    - siteID:  The WordPress.com ID of the site.
+    ///    - success: Optional success block with no parameters
+    ///    - failure: Optional failure block with NSError
+    ///
+    public func exportContent(siteID: NSNumber, success: (() -> Void)?, failure: (NSError -> Void)?) {
+        let endpoint = "sites/\(siteID)/exports/start"
+        let path = self.pathForEndpoint(endpoint, withVersion: ServiceRemoteRESTApiVersion_1_1)
+        
+        api.POST(path,
+            parameters: nil,
+            success: { operation, response in
+
+                // TODO
+                // will expect JSON like {result:true} or {export_id:0} here
+                
+                success?()
+            },
+            failure: { operation, error in
+                
+                // TODO
+                // Currently always fails as response is "true"
+
+                failure?(error)
+        })
+    }
+
     /// Keys found in API results
     ///
     private struct ResultKey
